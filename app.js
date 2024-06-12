@@ -8,8 +8,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
+// Ensure the directory exists
+const ensureDirectoryExists = async (dir) => {
+  try {
+    await fs.access(dir);
+  } catch (err) {
+    await fs.mkdir(dir);
+  }
+};
+
 app.get("/", async (req, res) => {
   try {
+    await ensureDirectoryExists("./hisaab");
     const files = await fs.readdir("./hisaab");
     res.render("index", { files: files });
   } catch (err) {
@@ -40,6 +50,7 @@ app.post("/createhisaab", async (req, res) => {
   }-${currentDate.getFullYear()}`;
 
   try {
+    await ensureDirectoryExists("./hisaab");
     let counter = 1;
     let filePath = `./hisaab/${date}.txt`;
 
@@ -70,7 +81,7 @@ app.get("/hisaab/:filename", async (req, res) => {
 
 app.get("/delete/:filename", async (req, res) => {
   try {
-    const filedata = await fs.unlink(`./hisaab/${req.params.filename}`);
+    await fs.unlink(`./hisaab/${req.params.filename}`);
     res.redirect("/");
   } catch (err) {
     res.status(500).send(err);
